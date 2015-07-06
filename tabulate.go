@@ -32,9 +32,7 @@ func flagInit(renderers []tabulate.Renderer) {
 	// Flag initialization.
 	flag.StringVar(&ifs, "I", defaultIFS, "Input field separator.")
 	flag.StringVar(&ofs, "O", defaultOFS, "Output field separator.")
-	usage = "Output renderer."
-	flag.StringVar(&render, "render", defaultRender, usage)
-	flag.StringVar(&render, "r", defaultRender, usage+" (shorthand)")
+	flag.StringVar(&render, "r", defaultRender, "Output renderer.")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
