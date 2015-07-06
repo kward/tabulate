@@ -1,8 +1,6 @@
-package tabulate
+package strings
 
-import (
-	"strings"
-)
+import "strings"
 
 // SplitNMerged slices s into substrings separated by sep and returns a slice
 // of the substrings between those separators. If sep is empty, SplitN splits

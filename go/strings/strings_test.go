@@ -1,8 +1,9 @@
-package tabulate
+package strings
 
 import (
 	"testing"
-	fe_operators "forestent.com/go/operators"
+
+	myoperators "github.com/kward/tabulate/go/operators"
 )
 
 func TestSplitNMerged(t *testing.T) {
@@ -12,19 +13,19 @@ func TestSplitNMerged(t *testing.T) {
 
 	want = []string{"1", "2", "3"}
 	got = SplitNMerged("1 2 3", " ", -1)
-	if !fe_operators.EqualSlicesOfString(want, got) {
+	if !myoperators.EqualSlicesOfString(want, got) {
 		t.Errorf("SplitNMerged(): want %v, got %v", want, got)
 	}
 
 	want = []string{"1", "2", "3"}
 	got = SplitNMerged("1 2   3", " ", -1)
-	if !fe_operators.EqualSlicesOfString(want, got) {
+	if !myoperators.EqualSlicesOfString(want, got) {
 		t.Errorf("SplitNMerged(): want %v, got %v", want, got)
 	}
 
 	want = []string{}
 	got = SplitNMerged("", " ", -1)
-	if !fe_operators.EqualSlicesOfString(want, got) {
+	if !myoperators.EqualSlicesOfString(want, got) {
 		t.Errorf("SplitNMerged(): want %v, got %v", want, got)
 	}
 }
