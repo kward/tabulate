@@ -17,6 +17,40 @@ like to contribute to one or another version, feel free to do so.
 * Views:         [![views][SGViews]][SGProject] [![views_24h][SGViews24h]][SGProject]
 * Users:         [![library users][SGUsers]][SGProject] [![dependents][SGDependents]][SGProject]
 
+## Usage
+An easy example is to tabulate your `/etc/passwd` file.
+
+```sh
+$ go run tabulate.go -I : /etc/passwd
+```
+
+You can of course build tabulate into a binary, and place it into your favorite
+binary location.
+
+```sh
+$ go build tabulate.go
+$ mv tabulate ${HOME}/bin
+```
+
+To get a full list of options, request `--help`.
+
+```
+$ go run tabulate.go --help
+Usage of /var/folders/00/0525h000h01000cxqpysvccm000m8p/T/go-build655823536/command-line-arguments/_obj/exe/tabulate:
+  -I=" ": Input field separator.
+  -O=" ": Output field separator.
+  -cols=0: Number of columns; 0=all.
+  -comment_prefix="#": Comment prefix.
+  -comments=true: Ignore comments.
+  -r="plain": Output renderer. (shorthand)
+  -render="plain": Output renderer.
+Supported renderers:
+  csv
+  markdown
+  mysql
+  plain
+  sqlite3
+```
 
 <!--- Links -->
 [CIProject]: https://travis-ci.org/kward/tabulate
