@@ -27,8 +27,6 @@ var (
 )
 
 func flagInit(renderers []tabulate.Renderer) {
-	var usage string
-
 	// Flag initialization.
 	flag.StringVar(&ifs, "I", defaultIFS, "Input field separator.")
 	flag.StringVar(&ofs, "O", defaultOFS, "Output field separator.")
