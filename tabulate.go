@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	columns = flag.Int("cols", 0, "Number of colums; 0=all.")
+	columns = flag.Int("cols", 0, "Number of columns; 0=all.")
 
 	ifs, ofs string
 	render   string
