@@ -22,6 +22,7 @@ An easy example is to tabulate your `/etc/passwd` file. Here are the first 10
 non-comment lines from my `/etc/passwd` file.
 
 ```
+$ grep -v ^# /etc/passwd |head
 nobody:*:-2:-2:Unprivileged User:/var/empty:/usr/bin/false
 root:*:0:0:System Administrator:/var/root:/bin/sh
 daemon:*:1:1:System Services:/var/root:/usr/bin/false
