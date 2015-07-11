@@ -4,6 +4,9 @@ import "testing"
 
 func TestEqualSlicesOfByte(t *testing.T) {
 	// Equal.
+	if !EqualSlicesOfByte(nil, nil) {
+		t.Errorf("EqualSlicesOfByte([]byte): nil == nil")
+	}
 	if !EqualSlicesOfByte([]byte{}, []byte{}) {
 		t.Errorf("EqualSlicesOfByte([]byte): [] == []")
 	}
@@ -11,6 +14,9 @@ func TestEqualSlicesOfByte(t *testing.T) {
 		t.Errorf("EqualSlicesOfByte([]byte): [1, 2, 3] == [1, 2, 3]")
 	}
 	// Not equal.
+	if EqualSlicesOfByte([]byte{1, 2, 3}, nil) {
+		t.Errorf("EqualSlicesOfByte([]byte): [1, 2, 3] != nil")
+	}
 	if EqualSlicesOfByte([]byte{1, 2, 3}, []byte{}) {
 		t.Errorf("EqualSlicesOfByte([]byte): [1, 2, 3] != []")
 	}
