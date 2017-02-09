@@ -122,27 +122,18 @@ func TestSplitNMerged(t *testing.T) {
 func TestStretch(t *testing.T) {
 	t.Parallel()
 
-	var got, have, want string
-
-	// Long.
-	have = "str1"
-	got = Stretch(have, ' ', 6)
-	want = "str1  "
-	if want != got {
-		t.Errorf("Stretch(%q): got %v, want %v", have, want, got)
-	}
-	// Just right.
-	have = "str2"
-	got = Stretch(have, ' ', 4)
-	want = "str2"
-	if want != got {
-		t.Errorf("Stretch(%q): got %v, want %v", have, want, got)
-	}
-	// Short.
-	have = "str3"
-	got = Stretch(have, ' ', 1)
-	want = "str3"
-	if want != got {
-		t.Errorf("Stretch(%q): got %v, want %v", have, want, got)
+	for _, tt := range []struct {
+		desc    string
+		in, out string
+		l       int // length
+	}{
+		{"short", "foo", "foo", 1},
+		{"good", "bar", "bar", 3},
+		{"long", "baz", "baz   ", 6},
+	} {
+		if got, want := Stretch(tt.in, ' ', tt.l), tt.out; got != want {
+			t.Errorf("%s: Stretch() = %q, want %q", tt.desc, got, want)
+			continue
+		}
 	}
 }
