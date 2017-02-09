@@ -75,15 +75,13 @@ func main() {
 	}
 
 	// Open file.
-	var fh *os.File
+	fh := os.Stdin
 	if len(flag.Args()) > 0 {
 		fh, err = os.Open(flag.Arg(0))
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer fh.Close()
-	} else {
-		fh = os.Stdin
 	}
 
 	// Read file.
@@ -98,7 +96,7 @@ func main() {
 
 	// Render file.
 	renderer, ok := rmap[render]
-	if ok != true {
+	if !ok {
 		log.Fatalf("Invalid --render flag value %v.", render)
 	}
 	switch renderer.(type) {
