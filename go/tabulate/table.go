@@ -89,7 +89,7 @@ func SplitNMerged(s string, sep string, n int) []string {
 	split := strings.SplitN(s, sep, n)
 	merged := make([]string, 0, len(split))
 	for _, v := range split {
-		if v != "" {
+		if len(v) > 0 {
 			merged = append(merged, v)
 		}
 	}
