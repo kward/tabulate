@@ -3,8 +3,8 @@ package tabulate
 import (
 	"strings"
 
-	mymath "github.com/kward/tabulate/go/math"
-	mystrings "github.com/kward/tabulate/go/strings"
+	"github.com/kward/golib/math"
+	kstrings "github.com/kward/golib/strings"
 )
 
 type TableConfig struct {
@@ -37,7 +37,7 @@ func splitRow(row string, ifs string, columns int, config *TableConfig) []string
 	if columns == 0 {
 		columns = -1
 	}
-	return mystrings.SplitNMerged(row, ifs, columns)
+	return kstrings.SplitNMerged(row, ifs, columns)
 }
 
 func (t *Table) Split(records []string, ifs string, columns int) {
@@ -62,7 +62,7 @@ func (t *Table) Split(records []string, ifs string, columns int) {
 					colSizes = append(colSizes, 0)
 					numCols++
 				}
-				colSizes[i] = mymath.Max(len(col), colSizes[i])
+				colSizes[i] = math.Max(len(col), colSizes[i])
 			}
 		}
 		rows = append(rows, cols)

@@ -3,7 +3,7 @@ package tabulate
 import (
 	"testing"
 
-	myoperators "github.com/kward/tabulate/go/operators"
+	"github.com/kward/golib/operators"
 )
 
 func TestSingleRowSplit(t *testing.T) {
@@ -25,7 +25,7 @@ func TestSingleRowSplit(t *testing.T) {
 		if tbl.colCount != tt.colCount {
 			t.Errorf("Split(%v) colCount = %v, want %v", tt.records, tbl.colCount, tt.colCount)
 		}
-		if !myoperators.EqualSlicesOfInt(tbl.colSizes, tt.colSizes) {
+		if !operators.EqualSlicesOfInt(tbl.colSizes, tt.colSizes) {
 			t.Errorf("Split(%v) colSizes = %v, want %v", tt.records, tbl.colSizes, tt.colSizes)
 		}
 	}
@@ -48,7 +48,7 @@ func TestMultiRowSplit(t *testing.T) {
 		if tbl.colCount != tt.colCount {
 			t.Errorf("Split(%v) colCount = %v, want %v", tt.records, tbl.colCount, tt.colCount)
 		}
-		if !myoperators.EqualSlicesOfInt(tbl.colSizes, tt.colSizes) {
+		if !operators.EqualSlicesOfInt(tbl.colSizes, tt.colSizes) {
 			t.Errorf("Split(%v) colSizes = %v, want %v", tt.records, tbl.colSizes, tt.colSizes)
 		}
 	}
@@ -66,7 +66,7 @@ func TestSplitRow(t *testing.T) {
 
 	s = "1 2 3"
 	c = splitRow(s, ifs, cols, &tc)
-	if !myoperators.EqualSlicesOfString(c, []string{"1", "2", "3"}) {
+	if !operators.EqualSlicesOfString(c, []string{"1", "2", "3"}) {
 		t.Errorf("splitRow('%v', '%v', %v) => %v", s, ifs, cols, c)
 	}
 
@@ -102,19 +102,19 @@ func TestSplitNMerged(t *testing.T) {
 
 	want = []string{"1", "2", "3"}
 	got = SplitNMerged("1 2 3", " ", -1)
-	if !myoperators.EqualSlicesOfString(want, got) {
+	if !operators.EqualSlicesOfString(want, got) {
 		t.Errorf("SplitNMerged(): want %v, got %v", want, got)
 	}
 
 	want = []string{"1", "2", "3"}
 	got = SplitNMerged("1 2   3", " ", -1)
-	if !myoperators.EqualSlicesOfString(want, got) {
+	if !operators.EqualSlicesOfString(want, got) {
 		t.Errorf("SplitNMerged(): want %v, got %v", want, got)
 	}
 
 	want = []string{}
 	got = SplitNMerged("", " ", -1)
-	if !myoperators.EqualSlicesOfString(want, got) {
+	if !operators.EqualSlicesOfString(want, got) {
 		t.Errorf("SplitNMerged(): want %v, got %v", want, got)
 	}
 }

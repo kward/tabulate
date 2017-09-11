@@ -5,7 +5,7 @@ import (
 	"encoding/csv"
 	"strings"
 
-	mystrings "github.com/kward/tabulate/go/strings"
+	kstrings "github.com/kward/golib/strings"
 )
 
 // Renderers holds a populated list of renderers.
@@ -58,7 +58,7 @@ func (r *MarkdownRenderer) Render(tbl *Table) string {
 			}
 			if colNum < tbl.colCount {
 				s += " "
-				s += mystrings.Stretch(col, ' ', tbl.colSizes[colNum])
+				s += kstrings.Stretch(col, ' ', tbl.colSizes[colNum])
 				s += " |"
 			}
 		}
@@ -79,7 +79,7 @@ func (r *MySQLRenderer) Render(tbl *Table) string {
 
 	sectionBreak := "+"
 	for _, colSize := range tbl.colSizes {
-		sectionBreak += mystrings.Stretch("", '-', colSize+2)
+		sectionBreak += kstrings.Stretch("", '-', colSize+2)
 		sectionBreak += "+"
 	}
 	sectionBreak += "\n"
@@ -95,7 +95,7 @@ func (r *MySQLRenderer) Render(tbl *Table) string {
 			}
 			if colNum < tbl.colCount {
 				s += " "
-				s += mystrings.Stretch(col, ' ', tbl.colSizes[colNum])
+				s += kstrings.Stretch(col, ' ', tbl.colSizes[colNum])
 				s += " |"
 			}
 		}
