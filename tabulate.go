@@ -46,7 +46,7 @@ func flagInit(renderers []tabulate.Renderer) {
 
 	// Flag validation.
 	if *columns < 0 {
-		log.Fatal("invalid number of columns: %v", *columns)
+		log.Fatalf("invalid number of columns: %v", *columns)
 	}
 }
 
