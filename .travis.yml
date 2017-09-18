@@ -5,6 +5,4 @@ go:
   - tip
 
 install:
-  - go get github.com/kward/golib/math
-  - go get github.com/kward/golib/operators
-  - go get github.com/kward/golib/strings
+  - go get -v -t github.com/kward/golib/...
