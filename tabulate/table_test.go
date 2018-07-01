@@ -19,7 +19,10 @@ func TestSingleRowSplit(t *testing.T) {
 		{[]string{"1 2 3"}, 2, 2, []int{1, 3}},
 	}
 
-	tbl := NewTable(NewTableConfig())
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
 	for _, tt := range tests {
 		tbl.Split(tt.records, " ", tt.columns)
 		if tbl.colCount != tt.colCount {
@@ -42,7 +45,10 @@ func TestMultiRowSplit(t *testing.T) {
 		{[]string{"1 22 333", "333 22 1"}, -1, 3, []int{3, 2, 3}},
 	}
 
-	tbl := NewTable(NewTableConfig())
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
 	for _, tt := range tests {
 		tbl.Split(tt.records, " ", tt.columns)
 		if tbl.colCount != tt.colCount {
@@ -60,18 +66,22 @@ func TestSplitRow(t *testing.T) {
 		c []string
 	)
 
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+
 	ifs := " "
 	cols := 0
-	tc := TableConfig{commentPrefix: "#", ignoreComments: true}
 
 	s = "1 2 3"
-	c = splitRow(s, ifs, cols, &tc)
+	c = tbl.splitRow(s, ifs, cols)
 	if !operators.EqualSlicesOfString(c, []string{"1", "2", "3"}) {
 		t.Errorf("splitRow('%v', '%v', %v) => %v", s, ifs, cols, c)
 	}
 
 	s = "# comment line"
-	if l := len(splitRow(s, ifs, cols, &tc)); l != 1 {
+	if l := len(tbl.splitRow(s, ifs, cols)); l != 1 {
 		t.Errorf("splitRow('%v', '%v', %v): len %v", s, ifs, cols, l)
 	}
 }
@@ -87,7 +97,10 @@ func TestIsComment(t *testing.T) {
 		{in: []string{"# foo", "bar"}, out: false},
 	}
 
-	tbl := NewTable(NewTableConfig())
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
 	for _, tt := range tests {
 		if got, want := tbl.IsComment(tt.in), tt.out; got != want {
 			t.Errorf("IsComment() = %v, want %v", got, want)

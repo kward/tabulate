@@ -10,34 +10,30 @@ import (
 	"github.com/kward/tabulate/tabulate"
 )
 
-const (
-	defaultIFS    = " "
-	defaultOFS    = " "
-	defaultRender = "plain"
-)
-
 var (
 	columns = flag.Int("cols", 0, "Number of columns; 0=all.")
 
 	ifs, ofs string
 	render   string
+	reset    bool
 
 	comment  = flag.String("comment_prefix", "#", "Comment prefix.")
 	comments = flag.Bool("comments", true, "Ignore comments.")
 )
 
-func flagInit(renderers []tabulate.Renderer) {
+func flagInit(rs []tabulate.Renderer) {
 	// Flag initialization.
-	flag.StringVar(&ifs, "I", defaultIFS, "Input field separator.")
-	flag.StringVar(&ofs, "O", defaultOFS, "Output field separator.")
-	flag.StringVar(&render, "r", defaultRender, "Output renderer.")
+	flag.StringVar(&ifs, "I", " ", "Input field separator.")
+	flag.StringVar(&ofs, "O", " ", "Output field separator.")
+	flag.StringVar(&render, "r", "plain", "Output renderer.")
+	flag.BoolVar(&reset, "R", false, "Reset column width after each text block.")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
 
 		fmt.Fprintln(os.Stderr, "Supported renderers:")
-		for _, r := range renderers {
+		for _, r := range rs {
 			fmt.Fprintf(os.Stderr, "  %v\n", r.Type())
 		}
 	}
@@ -69,9 +65,9 @@ func main() {
 
 	flagInit(tabulate.Renderers)
 
-	rmap := map[string]tabulate.Renderer{}
+	renderers := map[string]tabulate.Renderer{}
 	for _, r := range tabulate.Renderers {
-		rmap[r.Type()] = r
+		renderers[r.Type()] = r
 	}
 
 	// Open file.
@@ -91,17 +87,20 @@ func main() {
 	}
 
 	// Parse file.
-	t := tabulate.NewTable(tabulate.NewTableConfig())
-	t.Split(data, ifs, *columns)
+	tbl, err := tabulate.NewTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	tbl.Split(data, ifs, *columns)
 
 	// Render file.
-	renderer, ok := rmap[render]
+	r, ok := renderers[render]
 	if !ok {
-		log.Fatalf("Invalid --render flag value %v.", render)
+		log.Fatalf("Invalid --render flag value %v.", r)
 	}
-	switch renderer.(type) {
+	switch r.(type) {
 	case *tabulate.PlainRenderer:
-		renderer.(*tabulate.PlainRenderer).OFS = ofs
+		r.(*tabulate.PlainRenderer).OFS = ofs
 	}
-	fmt.Print(renderer.Render(&t))
+	fmt.Print(r.Render(tbl))
 }

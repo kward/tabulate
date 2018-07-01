@@ -79,10 +79,13 @@ func TestSQLite3Renderer(t *testing.T) {
 }
 
 func testRowRendering(t *testing.T, tests rowTests, r Renderer) {
-	tbl := NewTable(NewTableConfig())
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
 	for _, tt := range tests {
 		tbl.Split([]string{tt.in}, ifs, -1)
-		if got, want := r.Render(&tbl), tt.out; got != want {
+		if got, want := r.Render(tbl), tt.out; got != want {
 			got = strings.Replace(got, "\n", "\\n", -1)
 			want = strings.Replace(want, "\n", "\\n", -1)
 			t.Errorf("Render() = '%v', want '%v'", got, want)
@@ -91,10 +94,13 @@ func testRowRendering(t *testing.T, tests rowTests, r Renderer) {
 }
 
 func testTableRendering(t *testing.T, tests tableTests, r Renderer) {
-	tbl := NewTable(NewTableConfig())
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
 	for _, tt := range tests {
 		tbl.Split(tt.in, ifs, -1)
-		if got, want := r.Render(&tbl), tt.out; got != want {
+		if got, want := r.Render(tbl), tt.out; got != want {
 			got = strings.Replace(got, "\n", "\\n", -1)
 			want = strings.Replace(want, "\n", "\\n", -1)
 			t.Errorf("Render() = '%v', want '%v'", got, want)
