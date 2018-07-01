@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/kward/tabulate/go/tabulate"
+	"github.com/kward/tabulate/tabulate"
 )
 
 const (
