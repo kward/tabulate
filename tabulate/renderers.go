@@ -114,7 +114,7 @@ func (r *MySQLRenderer) Type() string {
 }
 
 type PlainRenderer struct {
-	OFS string
+	ofs string
 }
 
 func (r *PlainRenderer) Render(tbl *Table) string {
@@ -132,7 +132,7 @@ func (r *PlainRenderer) Render(tbl *Table) string {
 				break
 			}
 			if colNum > 0 {
-				tail += r.OFS
+				tail += r.ofs
 			}
 			s += tail + col
 			if colNum < tbl.colCount-1 {
@@ -146,6 +146,10 @@ func (r *PlainRenderer) Render(tbl *Table) string {
 
 func (r *PlainRenderer) Type() string {
 	return "plain"
+}
+
+func (r *PlainRenderer) SetOFS(ofs string) {
+	r.ofs = ofs
 }
 
 type SQLite3Renderer struct{}

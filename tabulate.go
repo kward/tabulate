@@ -100,7 +100,7 @@ func main() {
 	}
 	switch r.(type) {
 	case *tabulate.PlainRenderer:
-		r.(*tabulate.PlainRenderer).OFS = ofs
+		r.(*tabulate.PlainRenderer).SetOFS(ofs)
 	}
 	fmt.Print(r.Render(tbl))
 }

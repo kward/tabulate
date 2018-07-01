@@ -7,7 +7,12 @@ import (
 )
 
 func TestSingleRowSplit(t *testing.T) {
-	tests := []struct {
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+
+	for _, tt := range []struct {
 		records  []string
 		columns  int
 		colCount int
@@ -17,25 +22,24 @@ func TestSingleRowSplit(t *testing.T) {
 		{[]string{"1 2 333"}, -1, 3, []int{1, 1, 3}},
 		{[]string{"# comment"}, -1, 1, []int{0}},
 		{[]string{"1 2 3"}, 2, 2, []int{1, 3}},
-	}
-
-	tbl, err := NewTable()
-	if err != nil {
-		t.Fatalf("unexpected error; %s", err)
-	}
-	for _, tt := range tests {
+	} {
 		tbl.Split(tt.records, " ", tt.columns)
 		if tbl.colCount != tt.colCount {
-			t.Errorf("Split(%v) colCount = %v, want %v", tt.records, tbl.colCount, tt.colCount)
+			t.Errorf("Split(%v) colCount = %d, want %d", tt.records, tbl.colCount, tt.colCount)
 		}
 		if !operators.EqualSlicesOfInt(tbl.colSizes, tt.colSizes) {
-			t.Errorf("Split(%v) colSizes = %v, want %v", tt.records, tbl.colSizes, tt.colSizes)
+			t.Errorf("Split(%v) colSizes = %d, want %d", tt.records, tbl.colSizes, tt.colSizes)
 		}
 	}
 }
 
 func TestMultiRowSplit(t *testing.T) {
-	tests := []struct {
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+
+	for _, tt := range []struct {
 		records  []string
 		columns  int
 		colCount int
@@ -43,19 +47,13 @@ func TestMultiRowSplit(t *testing.T) {
 	}{
 		{[]string{"1", "2 2"}, -1, 2, []int{1, 1}},
 		{[]string{"1 22 333", "333 22 1"}, -1, 3, []int{3, 2, 3}},
-	}
-
-	tbl, err := NewTable()
-	if err != nil {
-		t.Fatalf("unexpected error; %s", err)
-	}
-	for _, tt := range tests {
+	} {
 		tbl.Split(tt.records, " ", tt.columns)
 		if tbl.colCount != tt.colCount {
-			t.Errorf("Split(%v) colCount = %v, want %v", tt.records, tbl.colCount, tt.colCount)
+			t.Errorf("Split(%v) colCount = %d, want %d", tt.records, tbl.colCount, tt.colCount)
 		}
 		if !operators.EqualSlicesOfInt(tbl.colSizes, tt.colSizes) {
-			t.Errorf("Split(%v) colSizes = %v, want %v", tt.records, tbl.colSizes, tt.colSizes)
+			t.Errorf("Split(%v) colSizes = %d, want %d", tt.records, tbl.colSizes, tt.colSizes)
 		}
 	}
 }
@@ -87,7 +85,12 @@ func TestSplitRow(t *testing.T) {
 }
 
 func TestIsComment(t *testing.T) {
-	var tests = []struct {
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+
+	for _, tt := range []struct {
 		in  []string
 		out bool
 	}{
@@ -95,13 +98,7 @@ func TestIsComment(t *testing.T) {
 		{in: []string{"foo", "bar"}, out: false},
 		{in: []string{"# foo"}, out: true},
 		{in: []string{"# foo", "bar"}, out: false},
-	}
-
-	tbl, err := NewTable()
-	if err != nil {
-		t.Fatalf("unexpected error; %s", err)
-	}
-	for _, tt := range tests {
+	} {
 		if got, want := tbl.IsComment(tt.in), tt.out; got != want {
 			t.Errorf("IsComment() = %v, want %v", got, want)
 		}

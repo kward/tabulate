@@ -1,109 +1,131 @@
 package tabulate
 
 import (
-	"strings"
 	"testing"
 )
 
-const ifs = " "
-
-type rowTests []struct {
+type renderRow struct {
 	in, out string
 }
 
-type tableTests []struct {
+type renderTable struct {
 	in  []string
 	out string
 }
 
 func TestCSVRenderer(t *testing.T) {
-	tests := rowTests{
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+	r := &CSVRenderer{}
+
+	for _, tt := range []renderRow{
 		{"123", "123\n"},
 		{"1 2 3", "1,2,3\n"},
 		{"1  2  3", "1,2,3\n"},
 		{"# 1 2 3", "# 1 2 3\n"},
 		{"# 1  2  3", "# 1  2  3\n"},
+	} {
+		tbl.Split([]string{tt.in}, " ", -1)
+		if got, want := r.Render(tbl), tt.out; got != want {
+			t.Errorf("Render() = %q, want %q", got, want)
+		}
 	}
-	testRowRendering(t, tests, &CSVRenderer{})
 }
 
 func TestMarkdownRenderer(t *testing.T) {
-	tests := rowTests{
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+	r := &MarkdownRenderer{}
+
+	for _, tt := range []renderRow{
 		{"123", "| 123 |\n"},
 		{"1 2 3", "| 1 | 2 | 3 |\n"},
 		{"1  2  3", "| 1 | 2 | 3 |\n"},
 		{"# 1 2 3", ""},
+	} {
+		tbl.Split([]string{tt.in}, " ", -1)
+		if got, want := r.Render(tbl), tt.out; got != want {
+			t.Errorf("Render() = %q, want %q", got, want)
+		}
 	}
-	testRowRendering(t, tests, &MarkdownRenderer{})
 }
 
 func TestMySQLRenderer(t *testing.T) {
-	tests := rowTests{
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+	r := &MySQLRenderer{}
+
+	for _, tt := range []renderRow{
 		{"123", "+-----+\n| 123 |\n+-----+\n"},
 		{"1 2 3", "+---+---+---+\n| 1 | 2 | 3 |\n+---+---+---+\n"},
 		{"1  2  3", "+---+---+---+\n| 1 | 2 | 3 |\n+---+---+---+\n"},
 		{"# 1 2 3", ""},
 		{"# 1  2  3", ""},
+	} {
+		tbl.Split([]string{tt.in}, " ", -1)
+		if got, want := r.Render(tbl), tt.out; got != want {
+			t.Errorf("Render() = %q, want %q", got, want)
+		}
 	}
-	testRowRendering(t, tests, &MySQLRenderer{})
 }
 
 func TestPlainRenderer(t *testing.T) {
-	rt := rowTests{
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+	r := &PlainRenderer{}
+	r.SetOFS(" ")
+
+	for _, tt := range []renderRow{
 		{"123", "123\n"},
 		{"1 2 3", "1 2 3\n"},
 		{"1  2  3", "1 2 3\n"},
 		{"1  2  3", "1 2 3\n"},
 		{"# 1 2 3", "# 1 2 3\n"},
 		{"# 1  2  3", "# 1  2  3\n"},
+	} {
+		tbl.Split([]string{tt.in}, " ", -1)
+		if got, want := r.Render(tbl), tt.out; got != want {
+			t.Errorf("Render() = %q, want %q", got, want)
+		}
 	}
-	testRowRendering(t, rt, &PlainRenderer{OFS: " "})
 
-	tt := tableTests{
+	for _, tt := range []renderTable{
 		{[]string{"1 22 333", "333 22 1"}, "1   22 333\n333 22 1\n"},
 		{[]string{"1 22 333", "4444 333 22 1"}, "1    22  333\n4444 333 22  1\n"},
 		{[]string{"4444 333 22", "1"}, "4444 333 22\n1\n"},
+	} {
+		tbl.Split(tt.in, " ", -1)
+		if got, want := r.Render(tbl), tt.out; got != want {
+			t.Errorf("Render() = %q, want %q", got, want)
+		}
 	}
-	testTableRendering(t, tt, &PlainRenderer{OFS: " "})
 }
 
 func TestSQLite3Renderer(t *testing.T) {
-	tests := rowTests{
+	tbl, err := NewTable()
+	if err != nil {
+		t.Fatalf("unexpected error; %s", err)
+	}
+	r := &SQLite3Renderer{}
+
+	for _, tt := range []renderRow{
 		{"123", "123\n"},
 		{"1 2 3", "1|2|3\n"},
 		{"1  2  3", "1|2|3\n"},
 		{"# 1 2 3", ""},
 		{"# 1  2  3", ""},
-	}
-	testRowRendering(t, tests, &SQLite3Renderer{})
-}
-
-func testRowRendering(t *testing.T, tests rowTests, r Renderer) {
-	tbl, err := NewTable()
-	if err != nil {
-		t.Fatalf("unexpected error; %s", err)
-	}
-	for _, tt := range tests {
-		tbl.Split([]string{tt.in}, ifs, -1)
+	} {
+		tbl.Split([]string{tt.in}, " ", -1)
 		if got, want := r.Render(tbl), tt.out; got != want {
-			got = strings.Replace(got, "\n", "\\n", -1)
-			want = strings.Replace(want, "\n", "\\n", -1)
-			t.Errorf("Render() = '%v', want '%v'", got, want)
-		}
-	}
-}
-
-func testTableRendering(t *testing.T, tests tableTests, r Renderer) {
-	tbl, err := NewTable()
-	if err != nil {
-		t.Fatalf("unexpected error; %s", err)
-	}
-	for _, tt := range tests {
-		tbl.Split(tt.in, ifs, -1)
-		if got, want := r.Render(tbl), tt.out; got != want {
-			got = strings.Replace(got, "\n", "\\n", -1)
-			want = strings.Replace(want, "\n", "\\n", -1)
-			t.Errorf("Render() = '%v', want '%v'", got, want)
+			t.Errorf("Render() = %q, want %q", got, want)
 		}
 	}
 }
