@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - "1.2.2"
+  - "1.7.6"  # 1.7 to use t.Run().
   - tip
 
 install:

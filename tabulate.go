@@ -13,9 +13,9 @@ import (
 var (
 	columns = flag.Int("cols", 0, "Number of columns; 0=all.")
 
-	ifs, ofs string
-	render   string
-	reset    bool
+	ifs, ofs     string
+	render       string
+	sectionReset bool
 
 	comment  = flag.String("comment_prefix", "#", "Comment prefix.")
 	comments = flag.Bool("comments", true, "Ignore comments.")
@@ -26,7 +26,7 @@ func flagInit(rs []tabulate.Renderer) {
 	flag.StringVar(&ifs, "I", " ", "Input field separator.")
 	flag.StringVar(&ofs, "O", " ", "Output field separator.")
 	flag.StringVar(&render, "r", "plain", "Output renderer.")
-	flag.BoolVar(&reset, "R", false, "Reset column width after each text block.")
+	flag.BoolVar(&sectionReset, "R", false, "Reset column widths after each section.")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
@@ -87,7 +87,9 @@ func main() {
 	}
 
 	// Parse file.
-	tbl, err := tabulate.NewTable()
+	tbl, err := tabulate.NewTable(
+		tabulate.SectionReset(sectionReset),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
