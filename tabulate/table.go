@@ -78,7 +78,24 @@ func NewTable(opts ...func(*tableOptions) error) (*Table, error) {
 			return nil, err
 		}
 	}
-	return &Table{opts: o}, nil
+	return &Table{
+		opts: o,
+		rows: []*Row{},
+	}, nil
+}
+
+// Append lines to the table.
+func (t *Table) Append(elems ...[]string) {
+	for _, elem := range elems {
+		s := make([]int, len(elem))
+		for i := 0; i < len(elem); i++ {
+			s[i] = len(elem[i])
+		}
+		t.rows = append(t.rows, &Row{
+			records: elem,
+			sizes:   s,
+		})
+	}
 }
 
 // IsComment returns true if the full line is a comment.

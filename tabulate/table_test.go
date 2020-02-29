@@ -2,10 +2,40 @@ package tabulate
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/kward/golib/operators"
 )
+
+func TestAppend(t *testing.T) {
+	for _, tc := range []struct {
+		desc  string
+		elems [][]string
+		row   *Row
+	}{
+		{"a b c", [][]string{{"a", "b", "c"}}, &Row{[]string{"a", "b", "c"}, []int{1, 1, 1}, false}},
+		{"empty", [][]string{}, &Row{[]string{}, []int{}, false}},
+	} {
+		t.Run(fmt.Sprintf("Append() %s", tc.desc), func(t *testing.T) {
+			tbl, err := NewTable()
+			if err != nil {
+				t.Fatalf("unexpected error; %s", err)
+			}
+
+			tbl.Append(tc.elems...)
+			if got, want := len(tbl.rows), len(tc.elems); got != want {
+				t.Errorf("len(rows) = %v, want %v", got, want)
+			}
+			if len(tc.elems) == 0 {
+				return
+			}
+			if got, want := tbl.rows[0], tc.row; !reflect.DeepEqual(got, want) {
+				t.Errorf("row = %v, want %v", got, want)
+			}
+		})
+	}
+}
 
 func TestSplit_SingleRow(t *testing.T) {
 	tbl, err := NewTable()
