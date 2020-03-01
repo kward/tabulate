@@ -1,4 +1,4 @@
-package tabulate
+package render
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	kstrings "github.com/kward/golib/strings"
+	"github.com/kward/tabulate/table"
 )
 
 // Renderers holds a populated list of renderers.
@@ -20,7 +21,7 @@ var Renderers = []Renderer{
 // Renderer is an interface that allows the contents of a Table to be rendered.
 type Renderer interface {
 	// Render the table.
-	Render(*Table) string
+	Render(*table.Table) string
 	// Type returns the type of renderer.
 	Type() string
 
@@ -35,19 +36,19 @@ type CSVRenderer struct{}
 var _ Renderer = new(CSVRenderer)
 
 // Render implements the Renderer interface.
-func (r *CSVRenderer) Render(tbl *Table) string {
-	if tbl == nil || len(tbl.rows) == 0 {
+func (r *CSVRenderer) Render(tbl *table.Table) string {
+	if tbl == nil || tbl.NumRows() == 0 {
 		return ""
 	}
 
 	buf := new(bytes.Buffer)
 	w := csv.NewWriter(buf)
 
-	for _, row := range tbl.rows {
-		if tbl.IsComment(row) {
+	for _, row := range tbl.Rows() {
+		if row.IsComment() {
 			continue
 		}
-		w.Write(row.records)
+		w.Write(row.Values())
 	}
 	w.Flush()
 	return buf.String()
@@ -66,24 +67,24 @@ type MarkdownRenderer struct{}
 var _ Renderer = new(MarkdownRenderer)
 
 // Render implements the Renderer interface.
-func (r *MarkdownRenderer) Render(tbl *Table) string {
-	if tbl == nil || len(tbl.rows) == 0 {
+func (r *MarkdownRenderer) Render(tbl *table.Table) string {
+	if tbl == nil || tbl.NumRows() == 0 {
 		return ""
 	}
 
 	s := ""
-	for _, row := range tbl.rows {
-		if tbl.IsComment(row) {
+	for _, row := range tbl.Rows() {
+		if row.IsComment() {
 			continue
 		}
 
-		for colNum, col := range row.records {
-			if colNum == 0 {
+		for j, col := range row.Columns() {
+			if j == 0 {
 				s += "|"
 			}
-			if colNum < len(row.records) {
+			if j < row.NumColumns() {
 				s += " "
-				s += kstrings.Stretch(col, ' ', row.sizes[colNum])
+				s += kstrings.Stretch(col.Value(), ' ', row.Sizes()[j])
 				s += " |"
 			}
 		}
@@ -105,32 +106,32 @@ type MySQLRenderer struct{}
 var _ Renderer = new(MySQLRenderer)
 
 // Render implements the Renderer interface.
-func (r *MySQLRenderer) Render(tbl *Table) string {
-	if tbl == nil || len(tbl.rows) == 0 {
+func (r *MySQLRenderer) Render(tbl *table.Table) string {
+	if tbl == nil || tbl.NumRows() == 0 {
 		return ""
 	}
 
 	s := ""
 
 	sectionBreak := "+"
-	for _, size := range tbl.rows[0].sizes {
+	for _, size := range tbl.Rows()[0].Sizes() {
 		sectionBreak += kstrings.Stretch("", '-', size+2)
 		sectionBreak += "+"
 	}
 	sectionBreak += "\n"
 
-	for _, row := range tbl.rows {
-		if tbl.IsComment(row) {
+	for _, row := range tbl.Rows() {
+		if row.IsComment() {
 			continue
 		}
 
-		for colNum, col := range row.records {
-			if colNum == 0 {
+		for j, col := range row.Columns() {
+			if j == 0 {
 				s += "|"
 			}
-			if colNum < len(row.records) {
+			if j < row.NumColumns() {
 				s += " "
-				s += kstrings.Stretch(col, ' ', row.sizes[colNum])
+				s += kstrings.Stretch(col.Value(), ' ', row.Sizes()[j])
 				s += " |"
 			}
 		}
@@ -159,34 +160,34 @@ type PlainRenderer struct {
 var _ Renderer = new(PlainRenderer)
 
 // Render implements the Renderer interface.
-func (r *PlainRenderer) Render(tbl *Table) string {
-	if tbl == nil || len(tbl.rows) == 0 {
+func (r *PlainRenderer) Render(tbl *table.Table) string {
+	if tbl == nil || tbl.NumRows() == 0 {
 		return ""
 	}
 
-	s := ""
-	for _, row := range tbl.rows {
-		if tbl.IsComment(row) {
-			s += row.records[0] + "\n"
+	var buf bytes.Buffer
+	for _, row := range tbl.Rows() {
+		if row.IsComment() {
+			buf.WriteString(row.Columns()[0].Value() + "\n")
 			continue
 		}
 
 		tail := "" // Tail to append on *next* loop.
-		for colNum, col := range row.records {
-			if len(col) == 0 { // If this col is empty, remaining cols will be too.
+		for j, col := range row.Columns() {
+			if col.Length() == 0 { // If this col is empty, remaining cols will be too.
 				break
 			}
-			if colNum > 0 {
+			if j > 0 {
 				tail += r.ofs
 			}
-			s += tail + col
-			if colNum < len(row.records)-1 {
-				tail = strings.Repeat(" ", row.sizes[colNum]-len(col))
+			buf.WriteString(tail + col.Value())
+			if j < row.NumColumns()-1 {
+				tail = strings.Repeat(" ", tbl.ColSizes()[j]-col.Length())
 			}
 		}
-		s += "\n"
+		buf.WriteRune('\n')
 	}
-	return s
+	return buf.String()
 }
 
 // Type implements the Renderer interface.
@@ -205,23 +206,23 @@ type SQLite3Renderer struct{}
 var _ Renderer = new(SQLite3Renderer)
 
 // Render implements the Renderer interface.
-func (r *SQLite3Renderer) Render(tbl *Table) string {
-	if tbl == nil || len(tbl.rows) == 0 {
+func (r *SQLite3Renderer) Render(tbl *table.Table) string {
+	if tbl == nil || tbl.NumRows() == 0 {
 		return ""
 	}
 
 	s := ""
-	for _, row := range tbl.rows {
-		if tbl.IsComment(row) {
+	for _, row := range tbl.Rows() {
+		if row.IsComment() {
 			// Do nothing.
 			continue
 		}
 
-		for colNum, col := range row.records {
-			if colNum > 0 {
+		for j, col := range row.Columns() {
+			if j > 0 {
 				s += "|"
 			}
-			s += col
+			s += col.Value()
 		}
 		s += "\n"
 	}

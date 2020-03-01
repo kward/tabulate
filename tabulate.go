@@ -7,25 +7,30 @@ import (
 	"log"
 	"os"
 
-	"github.com/kward/tabulate/tabulate"
+	"github.com/kward/tabulate/render"
+	"github.com/kward/tabulate/table"
 )
 
 var (
-	columns = flag.Int("cols", 0, "Number of columns; 0=all.")
-
-	ifs, ofs     string
-	render       string
-	sectionReset bool
-
-	comment  = flag.String("comment_prefix", "#", "Comment prefix.")
-	comments = flag.Bool("comments", true, "Ignore comments.")
+	columns        int
+	ifs, ofs       string
+	renderer       string
+	enableComments bool
+	commentPrefix  string
+	sectionReset   bool
 )
 
-func flagInit(rs []tabulate.Renderer) {
+func flagInit(rs []render.Renderer) {
 	// Flag initialization.
+	flag.Int("cols", 0, "Number of columns; 0=all.")
+
 	flag.StringVar(&ifs, "I", " ", "Input field separator.")
 	flag.StringVar(&ofs, "O", " ", "Output field separator.")
-	flag.StringVar(&render, "r", "plain", "Output renderer.")
+	flag.StringVar(&renderer, "r", "plain", "Output renderer.")
+
+	flag.BoolVar(&enableComments, "enable_comments", true, "Enable comments.")
+	flag.StringVar(&commentPrefix, "comment_prefix", "#", "Comment prefix.")
+
 	flag.BoolVar(&sectionReset, "R", false, "Reset column widths after each section.")
 
 	flag.Usage = func() {
@@ -41,8 +46,8 @@ func flagInit(rs []tabulate.Renderer) {
 	flag.Parse()
 
 	// Flag validation.
-	if *columns < 0 {
-		log.Fatalf("invalid number of columns: %v", *columns)
+	if columns < 0 {
+		log.Fatalf("invalid number of columns: %v", columns)
 	}
 }
 
@@ -63,11 +68,15 @@ func main() {
 		data []string
 	)
 
-	flagInit(tabulate.Renderers)
+	flagInit(render.Renderers)
 
-	renderers := map[string]tabulate.Renderer{}
-	for _, r := range tabulate.Renderers {
+	renderers := map[string]render.Renderer{}
+	for _, r := range render.Renderers {
 		renderers[r.Type()] = r
+	}
+	_, ok := renderers[renderer]
+	if !ok {
+		log.Fatalf("Invalid --render flag value %v.", renderer)
 	}
 
 	// Open file.
@@ -87,22 +96,24 @@ func main() {
 	}
 
 	// Parse file.
-	tbl, err := tabulate.NewTable(
-		tabulate.SectionReset(sectionReset),
+	n := columns
+	if n == 0 {
+		n = -1
+	}
+	tbl, err := table.Split(data, ifs, n,
+		table.CommentPrefix(commentPrefix),
+		table.EnableComments(enableComments),
+		table.SectionReset(sectionReset),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	tbl.Split(data, ifs, *columns)
 
 	// Render file.
-	r, ok := renderers[render]
-	if !ok {
-		log.Fatalf("Invalid --render flag value %v.", r)
-	}
+	r := renderers[renderer]
 	switch r.(type) {
-	case *tabulate.PlainRenderer:
-		r.(*tabulate.PlainRenderer).SetOFS(ofs)
+	case *render.PlainRenderer:
+		r.(*render.PlainRenderer).SetOFS(ofs)
 	}
 	fmt.Print(r.Render(tbl))
 }
