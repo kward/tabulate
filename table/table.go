@@ -117,13 +117,7 @@ func NewTable(opts ...func(*options) error) (*Table, error) {
 // Append lines to the table.
 func (t *Table) Append(records ...[]string) {
 	for _, rs := range records {
-		cs := make([]*Column, len(rs)) // Columns.
-		for i, r := range rs {
-			cs[i] = &Column{cell: r}
-		}
-		t.rows = append(t.rows, &Row{
-			columns: cs,
-		})
+		t.rows = append(t.rows, newRow(rs, false))
 	}
 }
 
