@@ -72,7 +72,7 @@ func (r *MarkdownRenderer) Render(tbl *table.Table) string {
 		return ""
 	}
 
-	s := ""
+	var buf bytes.Buffer
 	for _, row := range tbl.Rows() {
 		if row.IsComment() {
 			continue
@@ -80,17 +80,20 @@ func (r *MarkdownRenderer) Render(tbl *table.Table) string {
 
 		for j, col := range row.Columns() {
 			if j == 0 {
-				s += "|"
+				buf.WriteRune('|')
 			}
 			if j < row.NumColumns() {
-				s += " "
-				s += kstrings.Stretch(col.Value(), ' ', row.Sizes()[j])
-				s += " |"
+				s := row.Sizes()[j]
+				if s > 0 {
+					buf.WriteRune(' ')
+					buf.WriteString(kstrings.Stretch(col.Value(), ' ', s))
+				}
+				buf.WriteString(" |")
 			}
 		}
-		s += "\n"
+		buf.WriteRune('\n')
 	}
-	return s
+	return buf.String()
 }
 
 // Type implements the Renderer interface.
@@ -111,15 +114,19 @@ func (r *MySQLRenderer) Render(tbl *table.Table) string {
 		return ""
 	}
 
-	s := ""
-
 	sectionBreak := "+"
 	for _, size := range tbl.Rows()[0].Sizes() {
-		sectionBreak += kstrings.Stretch("", '-', size+2)
+		if size > 0 {
+			size += 2
+		} else {
+			size += 1
+		}
+		sectionBreak += kstrings.Stretch("", '-', size)
 		sectionBreak += "+"
 	}
 	sectionBreak += "\n"
 
+	var buf bytes.Buffer
 	for _, row := range tbl.Rows() {
 		if row.IsComment() {
 			continue
@@ -127,21 +134,24 @@ func (r *MySQLRenderer) Render(tbl *table.Table) string {
 
 		for j, col := range row.Columns() {
 			if j == 0 {
-				s += "|"
+				buf.WriteRune('|')
 			}
 			if j < row.NumColumns() {
-				s += " "
-				s += kstrings.Stretch(col.Value(), ' ', row.Sizes()[j])
-				s += " |"
+				s := row.Sizes()[j]
+				if s > 0 {
+					buf.WriteRune(' ')
+					buf.WriteString(kstrings.Stretch(col.Value(), ' ', s))
+				}
+				buf.WriteString(" |")
 			}
 		}
-		s += "\n"
+		buf.WriteRune('\n')
 	}
 
-	if s != "" {
-		s = sectionBreak + s + sectionBreak
+	var s string
+	if buf.Len() > 0 {
+		s = sectionBreak + buf.String() + sectionBreak
 	}
-
 	return s
 }
 
@@ -168,7 +178,8 @@ func (r *PlainRenderer) Render(tbl *table.Table) string {
 	var buf bytes.Buffer
 	for _, row := range tbl.Rows() {
 		if row.IsComment() {
-			buf.WriteString(row.Columns()[0].Value() + "\n")
+			buf.WriteString(row.Columns()[0].Value())
+			buf.WriteRune('\n')
 			continue
 		}
 
@@ -211,7 +222,7 @@ func (r *SQLite3Renderer) Render(tbl *table.Table) string {
 		return ""
 	}
 
-	s := ""
+	var buf bytes.Buffer
 	for _, row := range tbl.Rows() {
 		if row.IsComment() {
 			// Do nothing.
@@ -220,13 +231,13 @@ func (r *SQLite3Renderer) Render(tbl *table.Table) string {
 
 		for j, col := range row.Columns() {
 			if j > 0 {
-				s += "|"
+				buf.WriteRune('|')
 			}
-			s += col.Value()
+			buf.WriteString(col.Value())
 		}
-		s += "\n"
+		buf.WriteRune('\n')
 	}
-	return s
+	return buf.String()
 }
 
 // Type implements the Renderer interface.

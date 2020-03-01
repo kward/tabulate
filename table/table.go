@@ -117,7 +117,15 @@ func NewTable(opts ...func(*options) error) (*Table, error) {
 // Append lines to the table.
 func (t *Table) Append(records ...[]string) {
 	for _, rs := range records {
-		t.rows = append(t.rows, newRow(rs, false))
+		row := newRow(rs, false)
+		for j, s := range row.Sizes() {
+			if len(t.colSizes) > j {
+				t.colSizes[j] = math.Max(t.colSizes[j], s)
+			} else {
+				t.colSizes = append(t.colSizes, s)
+			}
+		}
+		t.rows = append(t.rows, row)
 	}
 }
 

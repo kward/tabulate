@@ -7,11 +7,11 @@ import (
 	"github.com/kward/tabulate/table"
 )
 
-func TestRender(t *testing.T) {
+func TestRender_Split(t *testing.T) {
 	for _, tc := range []struct {
-		desc string
-		in   string
-		cols int
+		desc    string
+		line    string
+		numCols int
 
 		csv      string
 		markdown string
@@ -26,36 +26,22 @@ func TestRender(t *testing.T) {
 			"123\n",
 			"123\n",
 		},
-		{"narrow columns", "1 2 3", 3,
+		{"three columns", "1 2 3", 3,
 			"1,2,3\n",
 			"| 1 | 2 | 3 |\n",
 			"+---+---+---+\n| 1 | 2 | 3 |\n+---+---+---+\n",
 			"1 2 3\n",
 			"1|2|3\n",
 		},
-		{"wide columns", "1  2  3", 3,
-			"1,2,3\n",
-			"| 1 | 2 | 3 |\n",
-			"+---+---+---+\n| 1 | 2 | 3 |\n+---+---+---+\n",
-			"1 2 3\n",
-			"1|2|3\n",
-		},
-		{"narrow comment", "# 1 2 3", 1,
+		{"comment", "# 1 2 3", 1,
 			"",
 			"",
 			"",
 			"# 1 2 3\n",
 			"",
 		},
-		{"wide comment", "# 1  2  3", 1,
-			"",
-			"",
-			"",
-			"# 1  2  3\n",
-			"",
-		},
 	} {
-		tbl, err := table.Split([]string{tc.in}, " ", tc.cols, table.EnableComments(true))
+		tbl, err := table.Split([]string{tc.line}, " ", tc.numCols, table.EnableComments(true))
 		if err != nil {
 			t.Fatalf("unexpected error; %s", err)
 		}
@@ -63,21 +49,21 @@ func TestRender(t *testing.T) {
 		t.Run(fmt.Sprintf("CSVRenderer %s", tc.desc), func(t *testing.T) {
 			r := &CSVRenderer{}
 			if got, want := r.Render(tbl), tc.csv; got != want {
-				t.Errorf("Render(%q) = %q, want %q", tc.in, got, want)
+				t.Errorf("= %q, want %q", got, want)
 			}
 		})
 
 		t.Run(fmt.Sprintf("MarkdownRenderer %s", tc.desc), func(t *testing.T) {
 			r := &MarkdownRenderer{}
 			if got, want := r.Render(tbl), tc.markdown; got != want {
-				t.Errorf("Render(%q) = %q, want %q", tc.in, got, want)
+				t.Errorf("= %q, want %q", got, want)
 			}
 		})
 
-		t.Run(fmt.Sprintf("MarkdownRenderer %s", tc.desc), func(t *testing.T) {
+		t.Run(fmt.Sprintf("MySQLRenderer %s", tc.desc), func(t *testing.T) {
 			r := &MySQLRenderer{}
 			if got, want := r.Render(tbl), tc.mysql; got != want {
-				t.Errorf("Render(%q) = %q, want %q", tc.in, got, want)
+				t.Errorf("= %q, want %q", got, want)
 			}
 		})
 
@@ -85,14 +71,77 @@ func TestRender(t *testing.T) {
 			r := &PlainRenderer{}
 			r.SetOFS(" ")
 			if got, want := r.Render(tbl), tc.plain; got != want {
-				t.Errorf("Render(%q) = %q, want %q", tc.in, got, want)
+				t.Errorf("= %q, want %q", got, want)
 			}
 		})
 
 		t.Run(fmt.Sprintf("SQLite3Renderer %s", tc.desc), func(t *testing.T) {
 			r := &SQLite3Renderer{}
 			if got, want := r.Render(tbl), tc.sqlite3; got != want {
-				t.Errorf("Render(%q) = %q, want %q", tc.in, got, want)
+				t.Errorf("= %q, want %q", got, want)
+			}
+		})
+	}
+}
+
+func TestRender_Append(t *testing.T) {
+	for _, tc := range []struct {
+		desc    string
+		records []string
+
+		csv      string
+		markdown string
+		mysql    string
+		plain    string
+		sqlite3  string
+	}{
+		{"second column empty", []string{"123", ""},
+			"123,\n",
+			"| 123 | |\n",
+			"+-----+-+\n| 123 | |\n+-----+-+\n",
+			"123\n",
+			"123|\n",
+		},
+	} {
+		tbl, err := table.NewTable(table.EnableComments(true))
+		if err != nil {
+			t.Fatalf("unexpected error; %s", err)
+		}
+		tbl.Append(tc.records)
+
+		t.Run(fmt.Sprintf("CSVRenderer %s", tc.desc), func(t *testing.T) {
+			r := &CSVRenderer{}
+			if got, want := r.Render(tbl), tc.csv; got != want {
+				t.Errorf("= %q, want %q", got, want)
+			}
+		})
+
+		t.Run(fmt.Sprintf("MarkdownRenderer %s", tc.desc), func(t *testing.T) {
+			r := &MarkdownRenderer{}
+			if got, want := r.Render(tbl), tc.markdown; got != want {
+				t.Errorf("= %q, want %q", got, want)
+			}
+		})
+
+		t.Run(fmt.Sprintf("MySQLRenderer %s", tc.desc), func(t *testing.T) {
+			r := &MySQLRenderer{}
+			if got, want := r.Render(tbl), tc.mysql; got != want {
+				t.Errorf("= %q, want %q", got, want)
+			}
+		})
+
+		t.Run(fmt.Sprintf("PlainRenderer %s", tc.desc), func(t *testing.T) {
+			r := &PlainRenderer{}
+			r.SetOFS(" ")
+			if got, want := r.Render(tbl), tc.plain; got != want {
+				t.Errorf("= %q, want %q", got, want)
+			}
+		})
+
+		t.Run(fmt.Sprintf("SQLite3Renderer %s", tc.desc), func(t *testing.T) {
+			r := &SQLite3Renderer{}
+			if got, want := r.Render(tbl), tc.sqlite3; got != want {
+				t.Errorf("= %q, want %q", got, want)
 			}
 		})
 	}
